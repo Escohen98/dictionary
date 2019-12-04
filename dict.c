@@ -50,15 +50,18 @@ size_t dictionary_len(struct dict_t *dict) {
 int dictionary_open_map(struct dict_t *dict) {
 	//Implemented from https://stackoverflow.com/questions/5328785/c-programming-open-call-path
 	if (dict == NULL || dict -> path == NULL)  return 0;
-	dict -> fd = open(dict -> path, O_CREAT);
-	size_t length = ftruncate(dict -> fd, dictionary_len(dict));
-	char* addr = mmap(NULL, length, PROT_READ, MAP_PRIVATE, dict -> fd, 0); 
-	if (addr == MAP_FAILED) {
+	dict -> fd = open(dict -> path, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+	if (dict -> fd == -1) {
+		perror("open");
+		return 0;
+	}
+	size_t length = ftruncate(dict->fd, dictionary_len(dict));
+	dict->base = mmap(NULL, dictionary_len(dict), PROT_READ | PROT_WRITE, MAP_SHARED, dict -> fd, 0); 
+	if (dict->base == MAP_FAILED) {
 		//handle_error("mmap");
 		perror("mmap");
 		return 0;
 	}
-	dict->base = addr;
 	return 1;				
 }
 
@@ -76,7 +79,7 @@ int dictionary_generate(struct dict_t *dict, char *input) {
 	int rtrn = dictionary_open_map(dict);
 	while (fgets(line, sizeof(line), file)) {
 		strcpy(dict->base[i].word, line);
-		dict->base[i].len = strlen(line);
+		dict->base[i].len = strlen(line)-1;
 		i++;
 	}
 	return rtrn; 	
@@ -91,13 +94,13 @@ int dictionary_load(struct dict_t *dict) {
 // Free/destroy the underlying dict. Does NOT delete the database file.
 void dictionary_close(struct dict_t *dict) {
 	munmap(dict -> base, dictionary_len(dict));
-	free(sizeof(dict));
+	//free(sizeof(dict));
 	//destroy(dict);	
 }
 
 // returns pointer to word if it exists, null otherwise
 char* dictionary_exists(struct dict_t *dict, char *word) {
-	for (int i = 0; i < sizeof(dict->base); i++) {
+	for (int i = 0; i < dict->num_items; i++) {
 		if (strcmp(dict->base[i].word, word)) {
 			return dict->base[i].word;
 		} 		
@@ -108,7 +111,7 @@ char* dictionary_exists(struct dict_t *dict, char *word) {
 // Count of words with len > n
 int dictionary_larger_than(struct dict_t *dict, size_t n) {
 	int count = 0;
-	for (int i = 9; i < dictionary_len(dict); i++) {
+	for (int i = 0; i < dictionary_len(dict); i++) {
 		if(dict->base[i].len > n) {
 			count++;
 		}
