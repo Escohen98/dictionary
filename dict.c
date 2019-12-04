@@ -53,16 +53,16 @@ int dictionary_open_map(struct dict_t *dict) {
 	dict -> fd = open(dict -> path, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 	if (dict -> fd == -1) {
 		perror("open");
-		return 0;
+		return -1;
 	}
 	size_t length = ftruncate(dict->fd, dictionary_len(dict));
 	dict->base = mmap(NULL, dictionary_len(dict), PROT_READ | PROT_WRITE, MAP_SHARED, dict -> fd, 0); 
 	if (dict->base == MAP_FAILED) {
 		//handle_error("mmap");
 		perror("mmap");
-		return 0;
+		return -1;
 	}
-	return 1;				
+	return 0;				
 }
 
 
@@ -123,7 +123,7 @@ int dictionary_larger_than(struct dict_t *dict, size_t n) {
 int dictionary_smaller_than(struct dict_t *dict, size_t n) {
 	int count = 0;
 	for (int i = 0; i < dictionary_len(dict); i++) {
-		if (strlen(dict->base[i].len) < n) {
+		if (dict->base[i].len < n) {
 			count++;		
 		}
 	}
