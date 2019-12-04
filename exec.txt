@@ -1,0 +1,1 @@
+./dict [MODE - gen/load] [OUTPUT FILE] [/usr/share/dict/words]
