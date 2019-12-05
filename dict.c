@@ -57,7 +57,7 @@ int dictionary_open_map(struct dict_t *dict) {
     perror("open");
     return 0;
   }
-  size_t length = ftruncate(dict->fd, dictionary_len(dict));
+  ftruncate(dict->fd, dictionary_len(dict));
   dict->base = mmap(NULL, dictionary_len(dict), PROT_READ | PROT_WRITE,
                     MAP_SHARED, dict->fd, 0);
   if (dict->base == MAP_FAILED) {
@@ -95,8 +95,9 @@ int dictionary_load(struct dict_t *dict) { return dictionary_open_map(dict); }
 // Unmaps the given dictionary.
 // Free/destroy the underlying dict. Does NOT delete the database file.
 void dictionary_close(struct dict_t *dict) {
+  // msync(dict->base, dict
   munmap(dict->base, dictionary_len(dict));
-  // free(sizeof(dict));
+  free(dict);
   // destroy(dict);
 }
 
@@ -125,7 +126,18 @@ int dictionary_larger_than(struct dict_t *dict, size_t n) {
 int dictionary_smaller_than(struct dict_t *dict, size_t n) {
   int count = 0;
   for (int i = 0; i < dictionary_len(dict); i++) {
-    if (dict->base[i].len < n) {
+    if (dict->base[i].len != 0 && dict->base[i].len < n) {
+      count++;
+    }
+  }
+  return count;
+}
+
+// Count of words with len == n
+int dictionary_equal_to(struct dict_t *dict, size_t n) {
+  int count = 0;
+  for (int i = 0; i < dictionary_len(dict); i++) {
+    if (dict->base[i].len == n) {
       count++;
     }
   }
