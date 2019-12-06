@@ -119,7 +119,7 @@ char *dictionary_exists(struct dict_t *dict, char *word) {
 // Count of words with len > n
 int dictionary_larger_than(struct dict_t *dict, size_t n) {
   int count = 0;
-  for (int i = 0; i < dictionary_len(dict); i++) {
+  for (int i = 0; i < dict->num_items; i++) {
     if (dict->base[i].len > n) {
       count++;
     }
@@ -130,7 +130,7 @@ int dictionary_larger_than(struct dict_t *dict, size_t n) {
 // Count of words with len < n
 int dictionary_smaller_than(struct dict_t *dict, size_t n) {
   int count = 0;
-  for (int i = 0; i < dictionary_len(dict); i++) {
+  for (int i = 0; i < dict->num_items; i++) {
     if (dict->base[i].len != 0 && dict->base[i].len < n) {
       count++;
     }
@@ -141,7 +141,7 @@ int dictionary_smaller_than(struct dict_t *dict, size_t n) {
 // Count of words with len == n
 int dictionary_equal_to(struct dict_t *dict, size_t n) {
   int count = 0;
-  for (int i = 0; i < dictionary_len(dict); i++) {
+  for (int i = 0; i < dict->num_items; i++) {
     if (dict->base[i].len == n) {
       count++;
     }
