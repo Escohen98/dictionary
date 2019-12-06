@@ -57,10 +57,10 @@ int dictionary_open_map(struct dict_t *dict) {
     perror("open");
     return 0;
   }
-        if (ftruncate(dict->fd, dictionary_len(dict) == -1) {
-		perror("truncate");
-		return 0;
-	}
+  if (ftruncate(dict->fd, dictionary_len(dict)) == -1) {
+    perror("truncate");
+    return 0;
+  }
   dict->base = mmap(NULL, dictionary_len(dict), PROT_READ | PROT_WRITE,
                     MAP_SHARED, dict->fd, 0);
   if (dict->base == MAP_FAILED) {
