@@ -57,7 +57,10 @@ int dictionary_open_map(struct dict_t *dict) {
     perror("open");
     return 0;
   }
-  ftruncate(dict->fd, dictionary_len(dict));
+        if (ftruncate(dict->fd, dictionary_len(dict) == -1) {
+		perror("truncate");
+		return 0;
+	}
   dict->base = mmap(NULL, dictionary_len(dict), PROT_READ | PROT_WRITE,
                     MAP_SHARED, dict->fd, 0);
   if (dict->base == MAP_FAILED) {
@@ -83,6 +86,8 @@ int dictionary_generate(struct dict_t *dict, char *input) {
   int rtrn = dictionary_open_map(dict);
   while (fgets(line, sizeof(line), file)) {
     strcpy(dict->base[i].word, line);
+    char *replace = strchr(dict->base[i].word, '\n');
+    *replace = '\0';
     dict->base[i].len = strlen(line) - 1;
     i++;
   }
@@ -104,7 +109,7 @@ void dictionary_close(struct dict_t *dict) {
 // returns pointer to word if it exists, null otherwise
 char *dictionary_exists(struct dict_t *dict, char *word) {
   for (int i = 0; i < dict->num_items; i++) {
-    if (strcmp(dict->base[i].word, word)) {
+    if (strcmp(dict->base[i].word, word) == 0) {
       return dict->base[i].word;
     }
   }
